@@ -1,0 +1,32 @@
+diff --git a/dist/raster-tileset/web-mercator-clamp.js b/dist/raster-tileset/web-mercator-clamp.js
+index 271bb2d3c5161b889d2f18b6e387a50dc59ccd0e..64b6ae5b28a50d28d3c1c497ff4a6c6973a9d991 100644
+--- a/dist/raster-tileset/web-mercator-clamp.js
++++ b/dist/raster-tileset/web-mercator-clamp.js
+@@ -64,6 +64,25 @@ export function createInitialWebMercatorTriangulation(cornerLats, maxLat = MAX_W
+     if (vBottom - vTop < LAT_EPSILON) {
+         return undefined;
+     }
+-    return triangulateRectangle(0, vTop, 1, vBottom);
++    return triangulateBand(vTop, vBottom);
++}
++/**
++ * The clamped band as two stacked rectangles split off-center (patched in by
++ * worldtensor-geozarr). A single rectangle centered on the equator gives each
++ * side edge one error test point, at its midpoint, where Web Mercator's
++ * symmetric y error is zero, so refinement never converges and leaves holes
++ * (deck.gl-raster#713). Splitting at 37% moves every edge midpoint off the
++ * equator.
++ */
++function triangulateBand(vTop, vBottom) {
++    const vMid = vTop + 0.37 * (vBottom - vTop);
++    return {
++        // p0=(0,vTop) p1=(1,vTop) p2=(0,vMid) p3=(1,vMid) p4=(0,vBottom) p5=(1,vBottom)
++        uvs: [0, vTop, 1, vTop, 0, vMid, 1, vMid, 0, vBottom, 1, vBottom],
++        // upper: (p3,p0,p2), (p0,p3,p1); lower: (p5,p2,p4), (p2,p5,p3)
++        triangles: [3, 0, 2, 0, 3, 1, 5, 2, 4, 2, 5, 3],
++        // diagonals 0<->3 and 6<->9; shared middle edge p2-p3: 2<->11
++        halfedges: [3, -1, 11, 0, -1, -1, 9, -1, -1, 6, -1, 2],
++    };
+ }
+ //# sourceMappingURL=web-mercator-clamp.js.map
+\ No newline at end of file

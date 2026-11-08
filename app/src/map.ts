@@ -143,6 +143,8 @@ export function pinMarker(map: maplibregl.Map) {
  * on-screen radius. The map canvas is transparent off-globe, so a div under it shows.
  */
 export function globeGlow(map: maplibregl.Map, el: HTMLElement, caption?: HTMLElement) {
+  /** 0 on the globe, 1 on the flat map: the halo only makes sense round */
+  let flatness = 0;
   const place = () => {
     const c = map.getCenter();
     const lat = Math.max(-80, Math.min(80, c.lat));
@@ -152,7 +154,7 @@ export function globeGlow(map: maplibregl.Map, el: HTMLElement, caption?: HTMLEl
     const r = Math.hypot(p1.x - p0.x, p1.y - p0.y) / Math.sin((80 * Math.PI) / 180);
     const zoom = map.getZoom();
     el.style.setProperty("--r", `${r}px`);
-    el.style.opacity = String(Math.max(0, Math.min(1, 4.5 - zoom)));
+    el.style.opacity = String(Math.max(0, Math.min(1, 4.5 - zoom)) * (1 - flatness));
     // the big title steps aside once you zoom in to read the data
     if (caption) caption.style.opacity = String(Math.max(0, Math.min(1, 3.6 - zoom)));
     const cv = map.getCanvas().getBoundingClientRect();
@@ -163,4 +165,10 @@ export function globeGlow(map: maplibregl.Map, el: HTMLElement, caption?: HTMLEl
   map.on("move", place);
   map.on("resize", place);
   place();
+  return {
+    setFlatness(f: number) {
+      flatness = f;
+      place();
+    },
+  };
 }

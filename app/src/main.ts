@@ -12,6 +12,7 @@ import type { Sources } from "./layers.js";
 import { buildLayers, openSources } from "./layers.js";
 import type { MapHandles } from "./map.js";
 import { createMap, globeGlow, pinMarker } from "./map.js";
+import { clearSnapshot, fitWorldZoom, morph, snapshot } from "./morph.js";
 import { Probe, readSeries } from "./probe.js";
 import { ViewerStore } from "./store.js";
 import { $, bindUi, renderInspector, renderLegend, renderList, renderTimeline } from "./ui.js";
@@ -42,6 +43,8 @@ export type State = {
   query: string;
   pin: { lng: number; lat: number; series: Float32Array | null } | null;
   sprite: ImageData;
+  /** flat Web Mercator map instead of the globe */
+  flat: boolean;
 };
 
 let state: State;
@@ -59,10 +62,17 @@ let coveredKey = "";
 /** variable whose 2x playback stack was requested / has loaded */
 let playbackWanted = "";
 let playbackLoaded = "";
+/** globe <-> flat animation running: deck layers step aside for the snapshot */
+let morphing = false;
+let glow: ReturnType<typeof globeGlow>;
 
 /** Push the current state to deck.gl. Cheap: only uniforms change on scrub. */
 function draw() {
   if (!sources || !colormapTexture) return;
+  if (morphing) {
+    handles.overlay.setProps({ layers: [] });
+    return;
+  }
   handles.overlay.setProps({
     layers: buildLayers({
       sources,
@@ -89,6 +99,7 @@ function draw() {
         playbackLoaded = state.variable.path;
         requestAnimationFrame(draw);
       },
+      flat: state.flat,
       beforeId: handles.beforeId,
       style: {
         colormapTexture,
@@ -154,6 +165,36 @@ export async function selectVariable(v: Variable, keep?: Partial<State>) {
     vmax: keep?.vmax ?? v.range.p98 ?? v.range.max ?? 1,
   });
   if (state.pin) void inspect(state.pin.lng, state.pin.lat);
+}
+
+/** Unwrap the globe into a flat map, or wrap it back up. */
+export async function toggleFlat() {
+  if (morphing || !sources) return;
+  const toFlat = !state.flat;
+  const { map } = handles;
+  const btns = $("proj");
+  btns.classList.add("is-busy");
+  $("readout").hidden = true;
+  if (state.playing) setPlaying(false);
+  // the snapshot is what visibly unwraps; without it the basemap morphs alone
+  const frame = await snapshot(state.store, state.catalog, state.variable, state.yearIdx, state).catch(() => null);
+  morphing = true;
+  draw();
+  await morph({
+    map,
+    toFlat,
+    frame,
+    opacity: state.opacity,
+    beforeId: handles.beforeId,
+    onProgress: (f) => glow.setFlatness(f),
+  });
+  morphing = false;
+  for (const b of btns.querySelectorAll<HTMLElement>("[data-flat]")) {
+    b.classList.toggle("is-active", (b.dataset.flat === "1") === toFlat);
+  }
+  btns.classList.remove("is-busy");
+  update({ flat: toFlat });
+  clearSnapshot(map);
 }
 
 const pin = { marker: null as ReturnType<typeof pinMarker> | null };
@@ -244,6 +285,7 @@ async function boot() {
     domain: null,
     query: "",
     pin: null,
+    flat: false,
   };
 
   bootMsg.textContent = "Spinning up the globe";
@@ -253,13 +295,25 @@ async function boot() {
     draw();
   });
   pin.marker = pinMarker(handles.map);
-  globeGlow(handles.map, $("glow"), $("caption"));
+  glow = globeGlow(handles.map, $("glow"), $("caption"));
+  if (hash.flat) {
+    // deep link to the flat map: no animation, just start there
+    handles.map.setProjection({ type: "mercator" });
+    handles.map.setRenderWorldCopies(false);
+    if (!hash.zoom) handles.map.jumpTo({ zoom: fitWorldZoom(handles.map), center: [hash.center?.[0] ?? 10, 0] });
+    glow.setFlatness(1);
+    state.flat = true;
+    for (const b of $("proj").querySelectorAll<HTMLElement>("[data-flat]")) {
+      b.classList.toggle("is-active", b.dataset.flat === "1");
+    }
+  }
   bindUi(state, {
     selectVariable: (v) => void selectVariable(v),
     setYear,
     setPlaying,
     update,
     clearPin,
+    toggleFlat: () => void toggleFlat(),
   });
   wireMap();
   startLoop();

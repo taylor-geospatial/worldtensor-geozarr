@@ -7,6 +7,7 @@ export type HashState = {
   cmap?: string;
   center?: [number, number];
   zoom?: number;
+  flat?: boolean;
 };
 
 /** `#v=climate/t2m_mean&y=2025&c=thermal&@=10.0,20.0,1.6` */
@@ -16,6 +17,7 @@ export function readHash(): HashState {
   if (p.get("v")) out.v = p.get("v")!;
   if (p.get("y")) out.year = Number(p.get("y"));
   if (p.get("c")) out.cmap = p.get("c")!;
+  if (p.get("p") === "flat") out.flat = true;
   const cam = p.get("@")?.split(",").map(Number);
   if (cam?.length === 3 && cam.every(Number.isFinite)) {
     out.center = [cam[0]!, cam[1]!];
@@ -33,6 +35,7 @@ export function writeHash(s: State, map: maplibregl.Map) {
     p.set("v", s.variable.path);
     if (s.years.length) p.set("y", String(s.years[s.yearIdx]));
     p.set("c", s.cmap);
+    if (s.flat) p.set("p", "flat");
     p.set("@", `${c.lng.toFixed(2)},${c.lat.toFixed(2)},${map.getZoom().toFixed(2)}`);
     history.replaceState(null, "", `#${decodeURIComponent(p.toString())}`);
   }, 300);

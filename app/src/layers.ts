@@ -169,6 +169,8 @@ type BuildArgs = {
   /** the 2x playback stack has loaded and replaces the overview */
   playbackReady: boolean;
   onPlaybackLoad: () => void;
+  /** flat Web Mercator map instead of the globe */
+  flat: boolean;
   beforeId?: string;
 };
 
@@ -184,7 +186,9 @@ export function buildLayers(a: BuildArgs) {
     // winding, so the *front* faces are the far side: cull those instead of
     // GlobeView's default back faces. Culling back faces here draws the far
     // hemisphere through the globe, mirrored (looks like a 180° lon shift).
-    parameters: { depthCompare: "always" as const, cullMode: "front" as const },
+    // On the flat map there is no far side, and the mirrored winding would cull
+    // the whole raster, so culling is off there.
+    parameters: { depthCompare: "always" as const, cullMode: a.flat ? ("none" as const) : ("front" as const) },
     beforeId: a.beforeId,
     debug: new URLSearchParams(location.search).has("debug"),
   };

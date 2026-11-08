@@ -117,6 +117,8 @@ kbd { font: 500 10px var(--mono); color: var(--dim); border: 1px solid var(--lin
   filter: blur(4px);
 }
 #map { z-index: 1; }
+.proj { position: absolute; top: 14px; right: 14px; z-index: 5; background: var(--bg); }
+.proj.is-busy { pointer-events: none; opacity: 0.6; }
 /* big title over the globe, after Earthscale's hero */
 .caption { position: absolute; left: 28px; bottom: 92px; z-index: 4; pointer-events: none; transition: opacity 200ms; max-width: min(620px, 70%); }
 .caption .kick { font: 500 10px var(--mono); letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); }

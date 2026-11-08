@@ -46,6 +46,7 @@ The viewer uses Bun, Vite, TypeScript, a MapLibre globe and deck.gl-raster's [`Z
 - **Finding variables:** the 757 variables collapse into 349 families. Statistic (mean/min/max/std), soil depth and land-use from→to pairs are switches on the selected variable instead of separate list entries. The left panel is a domain → family tree, and **⌘K** (or **/**) searches everything.
 - **Colormaps:** keys **1–6** switch between viridis, plasma, inferno, magma, cividis and turbo; *more* opens the full set (cmocean, ColorBrewer, diverging).
 - **Hover** reads the exact pixel value. **Clicking** reads that pixel's whole history from the sharded `ts` array and plots it with a trend per decade.
+- **Globe ↔ flat:** the *Globe / Flat* switch (or **G**) unwraps the globe into a flat Web Mercator map, and wraps it back. MapLibre blends the two projections while a snapshot of the current frame bends with the basemap, then deck.gl takes over in the new view.
 
 ```bash
 cd app && bun install
@@ -69,7 +70,7 @@ uv run --group dev ruff check pipeline
 uv run --group dev ty check pipeline
 ```
 
-CI runs both on every push and pull request. Issues and pull requests are welcome.
+`app/patches/` carries one fix to deck.gl-raster (applied by `bun install`): it seeds the Web Mercator reprojection mesh with an off-equator split, so whole-globe tiles don't leave holes on the flat map ([deck.gl-raster#713](https://github.com/developmentseed/deck.gl-raster/issues/713)). CI runs both checks on every push and pull request. Issues and pull requests are welcome.
 
 ## Citation
 

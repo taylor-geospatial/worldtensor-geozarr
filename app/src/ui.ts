@@ -16,6 +16,7 @@ export type Actions = {
   setPlaying: (p: boolean) => void;
   update: (patch: Partial<State>, opts?: { redraw?: boolean }) => void;
   clearPin: () => void;
+  toggleFlat: () => void;
 };
 
 let actions: Actions;
@@ -249,6 +250,10 @@ export function bindUi(s: State, a: Actions) {
     if (s.playing) actions.setPlaying(false);
     actions.setYear(Number(slider.value));
   });
+  $("proj").addEventListener("click", (e) => {
+    const b = (e.target as HTMLElement).closest<HTMLElement>("[data-flat]");
+    if (b && (b.dataset.flat === "1") !== s.flat) actions.toggleFlat();
+  });
   $("speed").addEventListener("click", (e) => {
     const b = (e.target as HTMLElement).closest<HTMLElement>("[data-fps]");
     if (!b) return;
@@ -301,6 +306,8 @@ export function bindUi(s: State, a: Actions) {
       actions.setPlaying(!s.playing);
     } else if (/^[1-6]$/.test(e.key) && !e.metaKey && !e.ctrlKey && !e.altKey) {
       actions.update({ cmap: QUICK[Number(e.key) - 1] });
+    } else if (e.key.toLowerCase() === "g" && !e.metaKey && !e.ctrlKey && !e.altKey) {
+      actions.toggleFlat();
     } else if (e.key === "ArrowRight" || e.key === "ArrowLeft") {
       e.preventDefault();
       if (s.playing) actions.setPlaying(false);
