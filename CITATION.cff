@@ -1,0 +1,35 @@
+cff-version: 1.2.0
+message: >-
+  If you use this software, please cite it as below. If you use the data,
+  please also cite the WorldTensor paper and the original Zenodo release.
+title: "WorldTensor GeoZarr: a cloud-native GeoZarr store and web viewer for WorldTensor"
+type: software
+license: MIT
+authors:
+  - family-names: Corley
+    given-names: Isaac
+    affiliation: Taylor Geospatial
+repository-code: "https://github.com/taylor-geospatial/worldtensor-geozarr"
+url: "https://research.taylorgeospatial.org/worldtensor-geozarr/"
+keywords: [geozarr, zarr, earth-system, climate, deck.gl, webgl]
+references:
+  - type: article
+    title: "A harmonised dataset for Earth system foundation models"
+    authors:
+      - family-names: Rodriguez-Pardo
+        given-names: Carlos
+      - family-names: Tavoni
+        given-names: Massimo
+    journal: "arXiv preprint arXiv:2607.03298"
+    year: 2026
+  - type: dataset
+    title: "Data for WorldTensor: A Harmonized Dataset for Earth System Foundation Models"
+    authors:
+      - family-names: Rodriguez-Pardo
+        given-names: Carlos
+      - family-names: Tavoni
+        given-names: Massimo
+    publisher:
+      name: Zenodo
+    doi: 10.5281/zenodo.19047618
+    year: 2026

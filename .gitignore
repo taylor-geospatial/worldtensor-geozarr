@@ -1,0 +1,20 @@
+# python
+__pycache__/
+*.pyc
+.venv/
+.ruff_cache/
+
+# node
+node_modules/
+dist/
+
+# pipeline outputs (default WT_ROOT is the repo root)
+/raw/
+/zarr/
+pipeline/logs/
+pipeline/variables_manifest.jsonl
+pipeline/.*_job_id
+
+# local tooling
+.claude/
+.DS_Store
