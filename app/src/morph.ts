@@ -150,8 +150,19 @@ export function morph({ map, toFlat, frame, opacity, beforeId, onProgress }: Mor
         requestAnimationFrame(step);
         return;
       }
+      if (toFlat) {
+        map.setProjection({ type: "mercator" });
+      } else {
+        // MapLibre skips setProjection when the current projection's name
+        // matches the new type, and the blend expressions above already made a
+        // projection named "globe", so {type: "globe"} alone would keep the
+        // last frame's expression (Mercator just above this zoom: zooming in
+        // then hands deck.gl Mercator clip planes and the globe gets clipped).
+        // A different type first forces a fresh globe with its default spec.
+        map.setProjection({ type: "vertical-perspective" });
+        map.setProjection({ type: "globe" });
+      }
       map.getProjection = real;
-      map.setProjection({ type: toFlat ? "mercator" : "globe" });
       if (sky) map.setSky(sky);
       if (!toFlat) map.setRenderWorldCopies(true);
       resolve();
