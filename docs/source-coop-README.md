@@ -27,7 +27,7 @@ Each variable is its own self-contained group, `<domain>/<variable>`, for exampl
 | array | shape / chunks | use |
 |---|---|---|
 | `<var>` | (years ×) 721 × 1440, chunks of 1 year × 361 × 360 | full resolution |
-| `2x/<var>` | 1 year × 360 × 720 per chunk | global maps |
+| `2x/<var>` | 1 year × 360 × 720 per chunk | global maps and sharp playback |
 | `4x/<var>`, `8x/<var>` | all years in one chunk | animation and time sliders |
 | `ts/<var>` | all years × 16 × 16 chunks in one shard | a pixel's full history (about 40 KB per read) |
 
